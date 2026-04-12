@@ -1,0 +1,185 @@
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --primary-color: #38bdf8;
+    --text-main: #f1f5f9;
+    --text-dim: #94a3b8;
+    --success: #4ade80;
+    --error: #f87171;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color); /*[cite: 2] */
+    color: var(--text-main); /*[cite: 2] */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.card {
+    background-color: var(--card-bg); /*[cite: 2] */
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /*[cite: 2] */
+    width: 100%;
+    max-width: 400px; /* Tăng nhẹ độ rộng để nhập code thoải mái hơn */
+    text-align: center;
+    position: relative; /* Để làm mốc cho nút setting */
+}
+
+/* Nút Setting Bánh Răng */
+.settings-container {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    transition: color 0.2s;
+}
+
+.settings-container:hover {
+    color: var(--primary-color);
+}
+
+.settings-menu {
+    display: none;
+    position: absolute;
+    top: 2.5rem;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid #334155;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+    width: 160px;
+    z-index: 100;
+}
+
+.settings-menu label {
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+    white-space: nowrap;
+}
+
+/* Typography & Header */
+.header .icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.ip-address {
+    color: var(--text-dim); /*[cite: 2] */
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.ip-address span {
+    color: var(--primary-color); /*[cite: 2] */
+    font-family: monospace;
+}
+
+/* Inputs & Form */
+.input-group {
+    text-align: left;
+    margin-top: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: var(--text-dim); /*[cite: 2] */
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #334155; /*[cite: 2] */
+    background-color: #0f172a; /*[cite: 2] */
+    color: white;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-color); /*[cite: 2] */
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); /*[cite: 2] */
+}
+
+/* Đặc tả cho ô PIN (Chỉ nhập số) */
+#pin {
+    letter-spacing: 0.5rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Đặc tả cho vùng nhập Code */
+textarea#sharedText {
+    min-height: 120px;
+    font-family: 'Fira Code', 'Courier New', monospace; /* Font cho code */
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    white-space: pre; /* Giữ nguyên xuống dòng và thụt lề */
+    tab-size: 4;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 1.5rem;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--primary-color); /*[cite: 2] */
+    color: #0f172a; /*[cite: 2] */
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    background-color: #475569; /*[cite: 2] */
+    cursor: not-allowed;
+}
+
+/* Status Messages */
+.status-msg {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    display: none;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.success { color: var(--success); background: rgba(74, 222, 128, 0.1); } /*[cite: 2] */
+.error { color: var(--error); background: rgba(248, 113, 113, 0.1); } /*[cite: 2] */
+.loading { color: var(--text-dim); } /*[cite: 2] */
+
+/* Lớp ẩn bổ trợ */
+.hidden {
+    display: none !important;
+}
