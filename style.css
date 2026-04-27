@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color); /*[cite: 2] */
-    color: var(--text-main); /*[cite: 2] */
+    background-color: var(--bg-color);
+    color: var(--text-main);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -20,32 +20,31 @@ body {
 }
 
 .card {
-    background-color: var(--card-bg); /*[cite: 2] */
+    background-color: var(--card-bg);
     padding: 2rem;
     border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /*[cite: 2] */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     width: 100%;
-    max-width: 400px; /* Tăng nhẹ độ rộng để nhập code thoải mái hơn */
+    max-width: 550px;
     text-align: center;
-    position: relative; /* Để làm mốc cho nút setting */
+    position: relative;
 }
 
-/* Nút Setting Bánh Răng */
+/* SETTINGS */
 .settings-container {
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
     cursor: pointer;
-    font-size: 1.2rem;
     color: var(--text-dim);
-    transition: color 0.2s;
 }
-
 .settings-container:hover {
     color: var(--primary-color);
 }
 
 .settings-menu {
+    min-width: 200px; 
+    width: max-content;
     display: none;
     position: absolute;
     top: 2.5rem;
@@ -54,132 +53,156 @@ body {
     border: 1px solid #334155;
     padding: 12px;
     border-radius: 8px;
-    box-shadow: 0 10px 15px rgba(0,0,0,0.5);
-    width: 160px;
-    z-index: 100;
 }
-
 .settings-menu label {
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text-main);
-    white-space: nowrap;
+    white-space: normal;  /* cho xuống dòng tự nhiên */
+    line-height: 1.4;
 }
 
-/* Typography & Header */
-.header .icon {
-    font-size: 3rem;
-    margin-bottom: 10px;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.ip-address {
-    color: var(--text-dim); /*[cite: 2] */
-    font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-.ip-address span {
-    color: var(--primary-color); /*[cite: 2] */
-    font-family: monospace;
-}
-
-/* Inputs & Form */
+/* INPUT */
 .input-group {
     text-align: left;
     margin-top: 1.5rem;
 }
 
-.input-group label {
-    display: block;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    color: var(--text-dim); /*[cite: 2] */
-}
-
 input, textarea {
-    width: 100%;
     padding: 12px;
     border-radius: 8px;
-    border: 1px solid #334155; /*[cite: 2] */
-    background-color: #0f172a; /*[cite: 2] */
+    border: 1px solid #334155;
+    background-color: #0f172a;
     color: white;
-    font-size: 1rem;
-    box-sizing: border-box;
-    transition: all 0.3s;
 }
 
-input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--primary-color); /*[cite: 2] */
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); /*[cite: 2] */
+/* TEXTAREA WRAP */
+.textarea-wrap {
+    position: relative;
 }
 
-/* Đặc tả cho ô PIN (Chỉ nhập số) */
-#pin {
-    letter-spacing: 0.5rem;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.2rem;
-}
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
 
-/* Đặc tả cho vùng nhập Code */
-textarea#sharedText {
-    min-height: 120px;
-    font-family: 'Fira Code', 'Courier New', monospace; /* Font cho code */
+    width: 32px;
+    height: 32px;
+
+    background: rgba(51, 65, 85, 0.8);
+    border: 1px solid #475569;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--text-dim);
     font-size: 0.9rem;
-    line-height: 1.5;
-    resize: vertical;
-    white-space: pre; /* Giữ nguyên xuống dòng và thụt lề */
-    tab-size: 4;
+
+    cursor: pointer;
+    z-index: 10;
+
+    backdrop-filter: blur(6px);
+    transition: all 0.2s ease;
+} 
+.copy-btn:hover {
+    background: #1e293b;
+    color: var(--primary-color);
+    transform: scale(1.05);
 }
 
-/* Buttons */
-button {
+.copy-btn:active {
+    transform: scale(0.95);
+}
+.textarea-wrap {
+    position: relative;
+}
+textarea#sharedText {
+    resize: vertical;
+    min-height: 60px;
+    width: 100%;
+    box-sizing: border-box;   /* QUAN TRỌNG */
+    padding-right: 40px;      /* chừa chỗ cho nút copy */
+}
+button:not(.copy-btn) {
     width: 100%;
     padding: 12px;
     margin-top: 1.5rem;
     border-radius: 8px;
     border: none;
-    background-color: var(--primary-color); /*[cite: 2] */
-    color: #0f172a; /*[cite: 2] */
+    background-color: var(--primary-color);
+    color: #0f172a;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
 }
 
-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-button:disabled {
-    background-color: #475569; /*[cite: 2] */
-    cursor: not-allowed;
-}
-
-/* Status Messages */
+/* STATUS */
 .status-msg {
     margin-top: 1rem;
-    font-size: 0.9rem;
     display: none;
     padding: 10px;
     border-radius: 6px;
 }
 
-.success { color: var(--success); background: rgba(74, 222, 128, 0.1); } /*[cite: 2] */
-.error { color: var(--error); background: rgba(248, 113, 113, 0.1); } /*[cite: 2] */
-.loading { color: var(--text-dim); } /*[cite: 2] */
+.success { color: var(--success); }
+.error { color: var(--error); }
 
-/* Lớp ẩn bổ trợ */
+/* SCROLLBAR */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+textarea::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+
+/* HIDDEN */
 .hidden {
     display: none !important;
+}
+.moon-icon {
+    font-size: 2.5rem;
+    color: #e2e8f0;
+
+    position: relative;
+    display: inline-block;
+
+    text-shadow:
+        0 0 10px rgba(148, 163, 184, 0.4),
+        0 0 20px rgba(148, 163, 184, 0.3),
+        0 0 40px rgba(148, 163, 184, 0.2);
+    transition: all 0.7s ease;
+    animation: moonFloat 4s ease-in-out infinite;
+}
+@keyframes moonFloat {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-6px) scale(1.05);
+    }
+}
+.moon-icon::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+
+    background: radial-gradient(circle, rgba(148,163,184,0.25), transparent 70%);
+    filter: blur(10px);
+    z-index: -1;
+
+    animation: moonGlow 3s ease-in-out infinite;
+}
+
+@keyframes moonGlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+.moon-icon:hover {
+    color: #38bdf8;
+
+    text-shadow:
+        0 0 10px #38bdf8,
+        0 0 25px #38bdf8,
+        0 0 50px #0ea5e9;
+
+    transform: scale(1.15) rotate(-10deg);
 }
