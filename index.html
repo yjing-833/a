@@ -70,15 +70,25 @@
 </div>
 
 <script>
+/* SETTINGS MENU */
 function toggleSettings() {
     const menu = document.getElementById('settingsMenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 
+/* APPLY SETTINGS */
 function applySettings() {
     const checked = document.getElementById('hidePinCheck').checked;
-    document.getElementById('pinGroup').classList.toggle('hidden', checked);
-    document.getElementById('submitBtn').classList.toggle('hidden', checked);
+    const pinGroup = document.getElementById('pinGroup');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (checked) {
+        pinGroup.classList.add('hidden');
+        submitBtn.classList.add('hidden');
+    } else {
+        pinGroup.classList.remove('hidden');
+        submitBtn.classList.remove('hidden');
+    }
 }
 
 /* CLOSE MENU OUTSIDE */
@@ -103,9 +113,42 @@ function showMessage(text, type) {
     msg.style.display = "block";
 }
 
-/* FORM */
+/* FORM SUBMIT (ĐÃ BỔ SUNG LOGIC) */
 async function submitForm(e) {
     e.preventDefault();
+
+    const pinInput = document.getElementById('pin');
+    const pin = pinInput.value.trim();
+    const btn = document.getElementById('submitBtn');
+
+    if (!pin) {
+        showMessage("Vui lòng nhập mã PIN!", "error");
+        return;
+    }
+
+    btn.disabled = true;
+    showMessage("Đang gửi...", "loading");
+
+    try {
+        const res = await fetch("/", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: "pin=" + encodeURIComponent(pin)
+        });
+
+        const result = await res.text();
+
+        if (result.includes("SUCCESS")) {
+            showMessage("Gửi PIN thành công! 🎉", "success");
+            pinInput.value = "";
+        } else {
+            showMessage("Lỗi khi gửi PIN!", "error");
+        }
+    } catch (err) {
+        showMessage("Lỗi kết nối server!", "error");
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 /* REALTIME */
@@ -137,11 +180,27 @@ async function getText() {
 
         if (data.ts > lastTs) {
             lastTs = data.ts;
-            if (document.activeElement !== box) box.value = data.text;
+            if (document.activeElement !== box) {
+                box.value = data.text;
+            }
         }
     } catch(e) {}
 }
 
+/* LOAD SETTINGS FROM URL (THIẾU TRONG CODE BẠN) */
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.has('hiddenpin')) {
+        const checkbox = document.getElementById('hidePinCheck');
+        if (checkbox) {
+            checkbox.checked = true;
+            applySettings();
+        }
+    }
+});
+
+/* AUTO REFRESH */
 setInterval(getText, 1000);
 </script>
 
