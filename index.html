@@ -4,150 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moonlight PIN Setup</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- <link rel="stylesheet" href="style.css"> -->
+
+    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
-    <div class="card">
-        <!-- Nút Setting bánh răng -->
-        <div class="settings-container">
-            <div onclick="toggleSettings()">⚙️</div>
-            <div id="settingsMenu" class="settings-menu">
-                <label>
-                    <input type="checkbox" id="hidePinCheck" onchange="applySettings()"> Ẩn PIN & Kết nối
-                </label>
-            </div>
+<div class="card">
+
+    <!-- SETTINGS -->
+    <div class="settings-container" onclick="toggleSettings()">
+        <i class="fa-solid fa-gear"></i>
+
+        <div id="settingsMenu" class="settings-menu">
+            <label>
+                <input type="checkbox" id="hidePinCheck" onchange="applySettings()">
+                Ẩn PIN & Kết nối
+            </label>
         </div>
-
-        <div class="header">
-            <div class="icon">🌙</div>
-            <h1>Moonlight PIN</h1>
-            <p class="ip-address">IP: <span>{{ ip }}</span></p>
-        </div>
-
-        <form id="pinForm" onsubmit="submitForm(event)">
-            <!-- Nhóm PIN: chỉ cho phép nhập số -->
-            <div class="input-group" id="pinGroup">
-                <label for="pin">Nhập mã PIN</label>
-                <input type="tel" id="pin" name="pin" maxlength="4" placeholder="0000" 
-                       oninput="this.value=this.value.replace(/[^0-9]/g,'');" inputmode="numeric">
-            </div>
-
-            <!-- Nhóm Shared Text: chuyển sang textarea để nhập code -->
-            <div class="input-group">
-                <label for="sharedText">Ghi chú & Code (Realtime)</label>
-                <textarea id="sharedText" oninput="sendText()" placeholder="Dán code hoặc nội dung vào đây...">{{ text }}</textarea>
-            </div>
-
-            <button type="submit" id="submitBtn">Kết nối ngay</button>
-        </form>
-
-        <div id="message" class="status-msg"></div>
     </div>
 
-    <script>
-        // Điều khiển menu cài đặt
-        function toggleSettings() {
-            const menu = document.getElementById('settingsMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    <!-- HEADER -->
+    <div class="header">
+        <div class="icon"><i class="fa-solid fa-moon moon-icon"></i></div>
+        <h1>Moonlight PIN</h1>
+        <p class="ip-address">
+            <i class="fa-solid fa-network-wired"></i>
+            IP: <span style="color: #d9ffff;">{{ ip }}</span>
+        </p>
+    </div>
+
+    <!-- FORM -->
+    <form id="pinForm" onsubmit="submitForm(event)">
+
+        <div class="input-group" id="pinGroup">
+            <label><i class="fa-solid fa-key"></i> Nhập mã PIN</label>
+            <input type="tel" id="pin" maxlength="4"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+        </div>
+
+        <!-- TEXTAREA + COPY -->
+        <div class="input-group">
+            <label><i class="fa-solid fa-code"></i> Ghi chú & Code</label>
+
+            <div class="textarea-wrap">
+                <button type="button" class="copy-btn" onclick="copyText()">
+                    <i class="fa-solid fa-copy"></i>
+                </button>
+
+                <textarea id="sharedText" oninput="sendText()">{{ text }}</textarea>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">
+            <i class="fa-solid fa-plug"></i> Kết nối
+        </button>
+    </form>
+
+    <div id="message" class="status-msg"></div>
+</div>
+
+<script>
+function toggleSettings() {
+    const menu = document.getElementById('settingsMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function applySettings() {
+    const checked = document.getElementById('hidePinCheck').checked;
+    document.getElementById('pinGroup').classList.toggle('hidden', checked);
+    document.getElementById('submitBtn').classList.toggle('hidden', checked);
+}
+
+/* CLOSE MENU OUTSIDE */
+window.onclick = function(e) {
+    if (!e.target.closest('.settings-container')) {
+        document.getElementById('settingsMenu').style.display = 'none';
+    }
+};
+
+/* COPY */
+function copyText() {
+    const text = document.getElementById("sharedText").value;
+    navigator.clipboard.writeText(text);
+    showMessage("Đã copy!", "success");
+}
+
+/* MESSAGE */
+function showMessage(text, type) {
+    const msg = document.getElementById('message');
+    msg.innerText = text;
+    msg.className = "status-msg " + type;
+    msg.style.display = "block";
+}
+
+/* FORM */
+async function submitForm(e) {
+    e.preventDefault();
+}
+
+/* REALTIME */
+let isTyping = false;
+let typingTimeout;
+let lastTs = 0;
+
+async function sendText() {
+    isTyping = true;
+    const text = document.getElementById("sharedText").value;
+
+    await fetch("/update_text", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "text=" + encodeURIComponent(text)
+    });
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => isTyping = false, 800);
+}
+
+async function getText() {
+    if (isTyping) return;
+
+    try {
+        const res = await fetch("/get_text");
+        const data = await res.json();
+        const box = document.getElementById("sharedText");
+
+        if (data.ts > lastTs) {
+            lastTs = data.ts;
+            if (document.activeElement !== box) box.value = data.text;
         }
+    } catch(e) {}
+}
 
-        // Ẩn/hiện nút PIN và Kết nối
-        function applySettings() {
-            const isChecked = document.getElementById('hidePinCheck').checked;
-            const pinGroup = document.getElementById('pinGroup');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            if (isChecked) {
-                pinGroup.classList.add('hidden');
-                submitBtn.classList.add('hidden');
-            } else {
-                pinGroup.classList.remove('hidden');
-                submitBtn.classList.remove('hidden');
-            }
-        }
+setInterval(getText, 1000);
+</script>
 
-        // Đóng menu khi bấm ra ngoài
-        window.onclick = function(event) {
-            if (!event.target.matches('.settings-container, .settings-container *')) {
-                document.getElementById('settingsMenu').style.display = 'none';
-            }
-        }
-
-        async function submitForm(event) {
-            event.preventDefault();
-            const pinInput = document.getElementById('pin');
-            const pin = pinInput.value.trim();
-            const btn = document.getElementById('submitBtn');
-
-            if (!pin) { showMessage("Vui lòng nhập mã PIN!", "error"); return; }
-
-            btn.disabled = true;
-            showMessage("Đang gửi...", "loading");
-
-            try {
-                const response = await fetch("/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "pin=" + encodeURIComponent(pin)
-                });
-                const result = await response.text();
-                if (result.includes("SUCCESS")) {
-                    showMessage("Gửi PIN thành công! 🎉", "success");
-                    pinInput.value = "";
-                } else { showMessage("Lỗi khi gửi PIN. Thử lại!", "error"); }
-            } catch (e) { showMessage("Lỗi kết nối server!", "error"); }
-            finally { btn.disabled = false; }
-        }
-
-        function showMessage(text, type) {
-            const msg = document.getElementById('message');
-            msg.innerText = text;
-            msg.className = "status-msg " + type;
-            msg.style.display = "block";
-        }
-
-        let isTyping = false;
-        let typingTimeout;
-        let lastTs = 0;
-
-        async function sendText() {
-            isTyping = true;
-            const text = document.getElementById("sharedText").value;
-            await fetch("/update_text", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "text=" + encodeURIComponent(text)
-            });
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => { isTyping = false; }, 800); // Tăng delay cho code
-        }
-
-        async function getText() {
-            if (isTyping) return;
-            try {
-                const res = await fetch("/get_text");
-                const data = await res.json();
-                const box = document.getElementById("sharedText");
-                if (data.ts > lastTs) {
-                    lastTs = data.ts;
-                    if (document.activeElement !== box) box.value = data.text;
-                }
-            } catch(e) {}
-        }
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            if (urlParams.has('hiddenpin')) {
-                const checkbox = document.getElementById('hidePinCheck');
-                if (checkbox) {
-                    checkbox.checked = true;
-                    applySettings(); 
-                }
-            }
-        });
-        setInterval(getText, 1000);
-    </script>
 </body>
 </html>
