@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moonlight PIN Setup</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+<div class="card">
+
+    <!-- SETTINGS -->
+    <div class="settings-container" onclick="toggleSettings()">
+        <i class="fa-solid fa-gear"></i>
+
+        <div id="settingsMenu" class="settings-menu">
+            <label>
+                <input type="checkbox" id="hidePinCheck" onchange="applySettings()">
+                Ẩn PIN & Kết nối
+            </label>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="icon"><i class="fa-solid fa-moon moon-icon"></i></div>
+        <h1>Moonlight PIN</h1>
+        <p class="ip-address">
+            <i class="fa-solid fa-network-wired"></i>
+            IP: <span style="color: #d9ffff;">{{ ip }}</span>
+        </p>
+    </div>
+
+    <!-- FORM -->
+    <form id="pinForm" onsubmit="submitForm(event)">
+
+        <div class="input-group" id="pinGroup">
+            <label><i class="fa-solid fa-key"></i> Nhập mã PIN</label>
+            <input type="tel" id="pin" maxlength="4"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+        </div>
+
+        <!-- TEXTAREA + COPY -->
+        <div class="input-group">
+            <label><i class="fa-solid fa-code"></i> Ghi chú & Code</label>
+
+            <div class="textarea-wrap">
+                <button type="button" class="copy-btn" onclick="copyText()">
+                    <i class="fa-solid fa-copy"></i>
+                </button>
+
+                <textarea id="sharedText" oninput="sendText()">{{ text }}</textarea>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">
+            <i class="fa-solid fa-plug"></i> Kết nối
+        </button>
+    </form>
+
+    <div id="message" class="status-msg"></div>
+</div>
+
+<script>
+let isTyping = false;
+let typingTimeout;
+let sendTimeout;
+let lastTs = 0;
+
+const box = document.getElementById("sharedText");
+
+/* =========================
+   TEXT SYNC
+========================= */
+
+box.addEventListener("input", () => {
+    isTyping = true;
+
+    clearTimeout(sendTimeout);
+    sendTimeout = setTimeout(sendText, 300);
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        isTyping = false;
+    }, 800);
+});
+
+async function sendText() {
+    try {
+        await fetch("/update_text", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "text=" + encodeURIComponent(box.value)
+        });
+    } catch (e) {
+        console.error("Send text error:", e);
+    }
+}
+
+async function getText() {
+    if (isTyping) return;
+
+    try {
+        const res = await fetch("/get_text");
+        const data = await res.json();
+
+        if (data.ts > lastTs) {
+            lastTs = data.ts;
+
+            if (box.value !== data.text) {
+                box.value = data.text;
+            }
+        }
+    } catch (e) {
+        console.error("Get text error:", e);
+    }
+}
+
+/* =========================
+   SETTINGS MENU
+========================= */
+
+function toggleSettings() {
+    const menu = document.getElementById("settingsMenu");
+
+    menu.style.display =
+        menu.style.display === "block"
+            ? "none"
+            : "block";
+}
+
+/* =========================
+   APPLY SETTINGS
+========================= */
+
+function applySettings() {
+    const checked =
+        document.getElementById("hidePinCheck").checked;
+
+    const pinGroup =
+        document.getElementById("pinGroup");
+
+    const submitBtn =
+        document.getElementById("submitBtn");
+
+    if (checked) {
+        pinGroup.classList.add("hidden");
+        submitBtn.classList.add("hidden");
+    } else {
+        pinGroup.classList.remove("hidden");
+        submitBtn.classList.remove("hidden");
+    }
+}
+
+/* =========================
+   CLOSE SETTINGS OUTSIDE
+========================= */
+
+window.onclick = function (e) {
+    if (!e.target.closest(".settings-container")) {
+        document.getElementById(
+            "settingsMenu"
+        ).style.display = "none";
+    }
+};
+
+/* =========================
+   COPY
+========================= */
+
+async function copyText() {
+    try {
+        await navigator.clipboard.writeText(box.value);
+
+        showMessage(
+            "Đã copy!",
+            "success"
+        );
+    } catch (err) {
+        try {
+            box.select();
+            box.setSelectionRange(0, 99999);
+
+            const copied =
+                document.execCommand("copy");
+
+            box.blur();
+
+            if (copied) {
+                showMessage(
+                    "Đã copy!",
+                    "success"
+                );
+            } else {
+                showMessage(
+                    "Không thể copy!",
+                    "error"
+                );
+            }
+        } catch (e) {
+            showMessage(
+                "Không thể copy!",
+                "error"
+            );
+        }
+    }
+}
+
+/* =========================
+   STATUS MESSAGE
+========================= */
+
+function showMessage(text, type) {
+    const msg =
+        document.getElementById("message");
+
+    msg.innerText = text;
+    msg.className = "status-msg " + type;
+    msg.style.display = "block";
+
+    clearTimeout(msg._hideTimer);
+
+    msg._hideTimer = setTimeout(() => {
+        msg.style.display = "none";
+    }, 2000);
+}
+
+/* =========================
+   PIN SUBMIT
+========================= */
+
+async function submitForm(e) {
+    e.preventDefault();
+
+    const pinInput =
+        document.getElementById("pin");
+
+    const pin =
+        pinInput.value.trim();
+
+    const btn =
+        document.getElementById("submitBtn");
+
+    if (!pin) {
+        showMessage(
+            "Vui lòng nhập mã PIN!",
+            "error"
+        );
+        return;
+    }
+
+    btn.disabled = true;
+
+    showMessage(
+        "Đang gửi...",
+        "loading"
+    );
+
+    try {
+        const res = await fetch("/", {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+            },
+            body:
+                "pin=" +
+                encodeURIComponent(pin)
+        });
+
+        const result = await res.text();
+
+        if (result.includes("SUCCESS")) {
+            showMessage(
+                "Gửi PIN thành công! 🎉",
+                "success"
+            );
+
+            pinInput.value = "";
+        } else {
+            showMessage(
+                "Lỗi khi gửi PIN!",
+                "error"
+            );
+        }
+    } catch (err) {
+        console.error(err);
+
+        showMessage(
+            "Lỗi kết nối server!",
+            "error"
+        );
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+/* =========================
+   LOAD SETTINGS FROM URL
+========================= */
+
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        const urlParams =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        if (urlParams.has("hiddenpin")) {
+            const checkbox =
+                document.getElementById(
+                    "hidePinCheck"
+                );
+
+            if (checkbox) {
+                checkbox.checked = true;
+                applySettings();
+            }
+        }
+    }
+);
+
+/* =========================
+   AUTO REFRESH
+========================= */
+
+setInterval(getText, 500);
+</script>
+
+</body>
+</html>
